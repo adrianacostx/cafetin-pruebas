@@ -63,12 +63,16 @@ export default class Cl_vAdmin {
     mostrarProductos(productos) {
         this.tablaProductos.innerHTML = "";
         productos.forEach(prod => {
+            const cantidadSolicitada = Number(prod.cantidadSolicitada || 0);
+            const porcentajeSolicitado = Number(prod.porcentajeSolicitado || 0);
             const fila = this.tablaProductos.insertRow();
             fila.innerHTML = `
                 <td>${prod.codigo}</td>
                 <td>${prod.nombre}</td>
                 <td>${prod.categoria}</td>
-                <td>$${prod.precio.toFixed(2)}</td>
+                <td>$${Number(prod.precio || 0).toFixed(2)}</td>
+                <td>${cantidadSolicitada}</td>
+                <td>${porcentajeSolicitado.toFixed(1)}%</td>
                 <td>
                     <button class="btn btn-sm btn-warning btn-editar" data-id="${prod.id}">Editar</button>
                     <button class="btn btn-sm btn-danger btn-eliminar" data-id="${prod.id}">Eliminar</button>
@@ -101,11 +105,9 @@ export default class Cl_vAdmin {
         this.productoEditandoId = null;
     }
     poblarFiltroProductos(nombres) {
-        // Limpiar opciones excepto la primera (Todos)
         while (this.filtroProducto.options.length > 1) {
             this.filtroProducto.remove(1);
         }
-        // Agregar nuevas opciones dinámicamente
         nombres.forEach(nombre => {
             const option = document.createElement("option");
             option.value = nombre;

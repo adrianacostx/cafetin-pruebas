@@ -26,7 +26,7 @@ export default class Cl_cAdmin {
         const res = await sProducto.obtenerTodos();
         if (res.ok) {
             this.productos = res.data;
-            this.vista.mostrarProductos(this.productos);
+            this.vista.mostrarProductos(this.calcularEstadisticasProductos());
             const resNombres = await sProducto.obtenerNombresUnicos();
             if (resNombres.ok) {
                 this.vista.poblarFiltroProductos(resNombres.nombres);
@@ -46,7 +46,29 @@ export default class Cl_cAdmin {
                 estado: p.estado
             }));
             this.vista.mostrarPedidos(this.filtrarPedidos());
+            this.vista.mostrarProductos(this.calcularEstadisticasProductos());
         }
+    }
+    calcularEstadisticasProductos() {
+        const totalSolicitudes = this.pedidos.reduce((total, pedido) => {
+            return total + pedido.items.reduce((sum, item) => sum + (Number(item.cantidad) || 1), 0);
+        }, 0);
+        return this.productos.map((producto) => {
+            const cantidadSolicitada = this.pedidos.reduce((total, pedido) => {
+                const unidades = pedido.items
+                    .filter((item) => item.codigo === producto.codigo || item.nombre === producto.nombre)
+                    .reduce((sum, item) => sum + (Number(item.cantidad) || 1), 0);
+                return total + unidades;
+            }, 0);
+            const porcentajeSolicitado = totalSolicitudes > 0
+                ? (cantidadSolicitada / totalSolicitudes) * 100
+                : 0;
+            return {
+                ...producto,
+                cantidadSolicitada,
+                porcentajeSolicitado
+            };
+        });
     }
     filtrarPedidos() {
         return this.pedidos.filter(p => {
